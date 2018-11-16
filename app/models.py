@@ -118,6 +118,37 @@ class User(UserMixin, PaginatedAPIMixin, db.Model):
 def load_user(id):
     return User.query.get(int(id))
 
-class Account():
-    pass
-    # antes disso, comit users, initial comit
+class Account(PaginatedAPIMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    account_type = db.Column(db.String(20))
+    balance = db.Column(db.Numeric(12, 2), default=0.0)
+    sum_on_dash = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'account_type': self.account_type,
+            'balance': self.balance,
+            'sum_on_dash': self.sum_on_dash
+        }
+        return data
+
+    def from_dict(self, data, user_id=None):
+        for field in ['id', 'name', 'account_type', 'balance', 'sum_on_dash']:
+            if field in data:
+                setattr(self, field, data[field])
+        if user_id:
+            setattr(self, 'user_id', user_id)
+
+class Transfer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    from_account = db.Column(db.Integer, db.ForeignKey('account.id'))
+    to_account = db.Column(db.Integer, db.ForeignKey('account.id'))
+    amount = db.Column(db.Numeric(12,2))
+    observation = db.Column(db.String(150))
+    transfer_date = db.Column(db.DateTime, index=True, default=datetime.utcnow)

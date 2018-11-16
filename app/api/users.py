@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import jsonify, request, url_for
 from app import db
 from app.models import User
@@ -24,7 +25,7 @@ def get_users():
 def create_user():
     data = request.get_json() or {}
     if 'username' not in data or 'email' not in data or 'password' not in data:
-        return bad_request('deve informar os campos username, email and password fields')
+        return bad_request('deve informar os campos username, email and password')
     if User.query.filter_by(username=data['username']).first():
         return bad_request('por favor use um username diferente')
     if User.query.filter_by(email=data['email']).first():
@@ -52,3 +53,5 @@ def update_user(id):
     user.from_dict(data, new_user=False)
     db.session.commit()
     return jsonify(user.to_dict())
+
+
