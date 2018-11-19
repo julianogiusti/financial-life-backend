@@ -145,10 +145,26 @@ class Account(PaginatedAPIMixin, db.Model):
         if user_id:
             setattr(self, 'user_id', user_id)
 
-class Transfer(db.Model):
+class Transfer(PaginatedAPIMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     from_account = db.Column(db.Integer, db.ForeignKey('account.id'))
     to_account = db.Column(db.Integer, db.ForeignKey('account.id'))
     amount = db.Column(db.Numeric(12,2))
     observation = db.Column(db.String(150))
     transfer_date = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'from_account': self.from_account,
+            'to_account': self.to_account,
+            'amount': self.amount,
+            'observation': self.observation,
+            'transfer_date': self.transfer_date,
+        }
+        return data
+
+    def from_dict(self, data):
+        for field in ['id', 'from_account', 'to_account', 'amount', 'observation', 'transfer_date']:
+            if field in data:
+                setattr(self, field, data[field])

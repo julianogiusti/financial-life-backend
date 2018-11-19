@@ -6,14 +6,13 @@ from app.models import User, Account
 from app.api import bp
 from app.api.auth import token_auth
 
-
 @bp.route('/users/<int:user_id>/accounts', methods=['POST'])
 def create_account(user_id):
     data = request.get_json() or {}
-    if 'name' not in data:
+    if 'name' not in data or data['name'] == "":
         return bad_request('Deve informar um nome para a conta')
-    if Account.query.filter_by(name=data['name'], account_type=data['account_type']).first():
-        return bad_request('Você já tem uma conta com esse nome no memso tipo de conta')
+    if Account.query.filter_by(user_id=user_id, name=data['name'], account_type=data['account_type']).first():
+        return bad_request('Você já tem uma conta com esse nome no mesmo tipo de conta')
     acc = Account()
     acc.from_dict(data, user_id=user_id)
     db.session.add(acc)
@@ -31,7 +30,7 @@ def get_account(account_id):
 def get_user_accounts(user_id):
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 10, type=int), 100)
-    data = Account.to_collection_dict(Account.query, page, per_page, 'api.get_user_accounts', user_id=user_id)
+    data = Account.to_collection_dict(Account.query.filter_by(user_id=user_id), page, per_page, 'api.get_user_accounts', user_id=user_id)
     return jsonify(data)
 
 @bp.route('/accounts/<int:account_id>', methods=['PUT'])
