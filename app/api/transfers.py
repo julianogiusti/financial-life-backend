@@ -28,24 +28,17 @@ def create_transfer(user_id):
     response.headers['Location'] = url_for('api.get_user_accounts', user_id=user_id)
     return response
 
+
 @bp.route('/transfers/<int:transfer_id>', methods=['GET'])
 def get_transfer(transfer_id):
     return jsonify(Transfer.query.get_or_404(transfer_id).to_dict())
 
-@bp.route('/users/<int:user_id>/transfers', methods=['GET'])
-def get_user_transfers(user_id):
-    """
-    EM SQL:
-        select * from transfer t
-        join account ac
-            on ac.id = t.from_account
-        join user u
-            on u.id = ac.user_id
-        where u.id = 2
-        order by transfer_date
-    """
+
+# TODO: not working :s
+@bp.route('/accounts/<int:account_id>/transfers', methods=['GET'])
+def get_account_transfers(account_id):
+    print(account_id)
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 10, type=int), 100)
-
-    data = Transfer.to_collection_dict(Transfer.query, page, per_page, 'api.get_user_transfers', user_id=user_id)
+    data = Transfer.to_collection_dict(Transfer.query.filter_by(from_account=account_id), page, per_page, 'api.get_account_transfers', from_account=account_id)
     return jsonify(data)

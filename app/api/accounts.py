@@ -40,3 +40,4 @@ def update_account(account_id):
     account.from_dict(data)
     db.session.commit()
     return jsonify(account.to_dict())
+

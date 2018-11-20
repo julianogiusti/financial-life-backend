@@ -7,10 +7,15 @@ import os
 from time import time
 from flask import current_app, url_for
 from flask_login import UserMixin
+from sqlalchemy import null
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import rq
 from app import db, login
+
+# transaction types
+INCOME = 1
+EXPENSE = 2
 
 class PaginatedAPIMixin(object):
     @staticmethod
@@ -36,6 +41,7 @@ class PaginatedAPIMixin(object):
         return data
 
 class User(UserMixin, PaginatedAPIMixin, db.Model):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
@@ -119,13 +125,14 @@ def load_user(id):
     return User.query.get(int(id))
 
 class Account(PaginatedAPIMixin, db.Model):
+    __tablename__ = 'account'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    account_type = db.Column(db.String(20))
+    account_type = db.Column(db.Integer, db.ForeignKey('account_type.id'))
     balance = db.Column(db.Numeric(12, 2), default=0.0)
     sum_on_dash = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
         data = {
@@ -145,13 +152,28 @@ class Account(PaginatedAPIMixin, db.Model):
         if user_id:
             setattr(self, 'user_id', user_id)
 
+
+class AccountType(db.Model):
+    __tablename__ = 'account_type'
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(20), index=True)
+    # account_type em account, mudar para:
+    # 1 - conta_corrente
+    # 2 - poupanca
+    # 3 - dinheiro
+    # 4 - corretora
+    # 5 - investimentos
+    # 6 - outra
+
+
 class Transfer(PaginatedAPIMixin, db.Model):
+    __tablename__ = 'transfer'
     id = db.Column(db.Integer, primary_key=True)
     from_account = db.Column(db.Integer, db.ForeignKey('account.id'))
     to_account = db.Column(db.Integer, db.ForeignKey('account.id'))
     amount = db.Column(db.Numeric(12,2))
     observation = db.Column(db.String(150))
-    transfer_date = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    transfer_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
         data = {
@@ -160,7 +182,7 @@ class Transfer(PaginatedAPIMixin, db.Model):
             'to_account': self.to_account,
             'amount': self.amount,
             'observation': self.observation,
-            'transfer_date': self.transfer_date,
+            'transfer_date': self.transfer_date.isoformat() + 'Z',
         }
         return data
 
@@ -168,3 +190,58 @@ class Transfer(PaginatedAPIMixin, db.Model):
         for field in ['id', 'from_account', 'to_account', 'amount', 'observation', 'transfer_date']:
             if field in data:
                 setattr(self, field, data[field])
+
+
+class Transaction(PaginatedAPIMixin, db.Model):
+    __tablename__ = 'transaction'
+    id = db.Column(db.Integer, primary_key=True)
+    account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
+    category_id = db.Column(db.Integer, db.ForeignKey('transaction_category.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    value = db.Column(db.Numeric(12,2))
+    description = db.Column(db.String(50))
+    observation = db.Column(db.String(200))
+    paid = db.Column(db.Boolean, default=False)
+    transaction_type = db.Column(db.Integer)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'account_id': self.account_id,
+            'category_id': self.category_id,
+            'value': self.value,
+            'description': self.description,
+            'observation': self.observation,
+            'paid': self.paid,
+            'transaction_type': self.transaction_type,
+            'date_created': self.date_created.isoformat() + 'Z'
+        }
+        return data
+
+    def from_dict(self, data, user_id=None):
+        for field in ['id', 'account_id', 'category_id', 'value', 'description', 'observation', 'paid', 'transaction_type', 'date_created']:
+            if field in data:
+                setattr(self, field, data[field])
+        if user_id:
+            setattr(self, 'user_id', user_id)
+
+class TransactionCategory(db.Model):
+    __tablename__ = 'transaction_category'
+    id = db.Column(db.Integer, primary_key=True)
+    transaction_type = db.Column(db.Integer)
+    description = db.Column(db.String(50))
+
+
+class Tag(db.Model):
+    __tablename__ = 'tag'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    description = db.Column(db.String(50), index=True)
+
+
+class TransactionTag(db.Model):
+    __tablename__ = 'transaction_tag'
+    id = db.Column(db.Integer, primary_key=True)
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'))
+    tag_id = db.Column(db.Integer, db.ForeignKey('tag.id'))
