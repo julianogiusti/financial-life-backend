@@ -117,3 +117,5 @@ app.db
 .idea/
 
 logs/
+
+finlife.db
