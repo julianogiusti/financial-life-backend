@@ -60,3 +60,7 @@ curl -X POST \
   "balance": 2000.75
 }'
 ```
+
+## References
+[Flask mega tutorial](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world)  
+[InCeres base-api](https://github.com/InCeres/base-api)
