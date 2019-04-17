@@ -11,55 +11,58 @@ with features that I have not found in other apps.
 
 ## Instructions
 If you want to use virtualenvwrapper, open you terminal and:  
-```sudo pip install virtualenvwrapper```
+
+    $ sudo pip install virtualenvwrapper
 
 Open your .bashrc file and add these lines at the end:  
-```
-export WORKON_HOME=$HOME/.virtualenvs
-source /usr/local/bin/virtualenvwrapper.sh
-```
+
+    export WORKON_HOME=$HOME/.virtualenvs
+    source /usr/local/bin/virtualenvwrapper.sh
+
 
 Restart your terminal, go to project directory, create your virtualenv and install requirements:  
-```
-mkvirtualenv financial-life-backend
-workon financial-life-backend
-pip install -r requirements.txt
-```
+
+    $ mkvirtualenv financial-life-backend
+    $ workon financial-life-backend
+    $ pip install -r requirements.txt
+
 
 Activate the database:  
-```flask db upgrade```
+
+    $ flask db upgrade
 
 Now you can run the api with:  
-```flask run```
+
+    $ flask run
 
 That's it! Now the api is running and you can send requests to it. Use curl or Postman to test the API.
 
 ## Examples
 ### Creating user
-```
-curl -X POST \
-  http://localhost:5000/api/users \
-  -H 'Content-Type: application/json' \
-  -H 'cache-control: no-cache' \
-  -d '{
-  "username": "user",
-  "email": "user@email.com",
-  "password": "userpassword"
-}'
-```
+
+    curl -X POST \
+      http://localhost:5000/api/users \
+      -H 'Content-Type: application/json' \
+      -H 'cache-control: no-cache' \
+      -d '{
+      "username": "user",
+      "email": "user@email.com",
+      "password": "userpassword"
+    }'
+
 
 ### Creating account:
-```
-curl -X POST \
-  http://localhost:5000/api/users/1/accounts \
-  -H 'Content-Type: application/json' \
-  -H 'cache-control: no-cache' \
-  -d '{
-  "name": "Bank XYZ",
-  "account_type": 2,
-  "balance": 2000.75
-}'
-```
+
+    curl -X POST \
+      http://localhost:5000/api/users/1/accounts \
+      -H 'Content-Type: application/json' \
+      -H 'cache-control: no-cache' \
+      -d '{
+      "name": "Bank XYZ",
+      "account_type": 2,
+      "balance": 2000.75
+    }'
+
 
 ## References
 [Flask mega tutorial](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world)  
