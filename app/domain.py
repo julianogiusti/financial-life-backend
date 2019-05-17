@@ -114,19 +114,17 @@ class User(Entity):
     @classmethod
     def create_new(cls, json_data):
         password = json_data.pop('password')
+        password_hash = custom_app_context.encrypt(password)
+        json_data['password_hash'] = password_hash
         instance = super(User, cls).create_new(json_data)
-        instance.password_hash = custom_app_context.encrypt(password)
+        # error: "exception": "can't set attribute"
+        # instance.password_hash = password_hash
 
     def __init__(self, instance):
         super(User, self).__init__(instance)
         self.temp_password = None
         self.entity_key = None
         self.resource_key = None
-        self.__kanbans = None
-        self.__sprints = None
-        self.__planned_sprints = None
-        self.__teams = None
-        self.__modules = None
 
     @property
     def email(self):
@@ -149,10 +147,6 @@ class User(Entity):
         as_dict['email'] = self.email
         if compact:
             return as_dict
-
-        as_dict.update({
-            'is_manager': self.is_manager
-        })
         return as_dict
 
     def generate_auth_token(self, expiration=600):

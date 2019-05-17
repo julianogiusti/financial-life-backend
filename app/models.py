@@ -68,7 +68,7 @@ class AbstractModel(object):
             raise self.RepositoryError(ex.message)
 
     def set_values(self, json_data):
-        for key, value in json_data.iteritems():
+        for key, value in json_data.items():
             setattr(self, key, json_data.get(key, getattr(self, key)))
 
 

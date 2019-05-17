@@ -45,7 +45,7 @@ Start Alembic to create migrations for the new database:
 
 When a model is created or changed, create migrations:
 
-    $ $ python manage.py db migrate
+    $ python manage.py db migrate
 
 Then, uptade the database:
 

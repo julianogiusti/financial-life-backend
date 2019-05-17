@@ -32,8 +32,12 @@ class ResourceBase(Resource):
     list_compact = True
 
     def __init__(self):
-        super(ResourceBase, self).__init__()
-        self.__payload = None
+        self.me = getattr(g, 'user_entity', None)
+        if self.me is None and self.logged_user is not None:
+            self.me = domain.User.create_with_logged(self.logged_user)
+        if self.me is not None:
+            self.me.entity_key = self.entity_key
+            self.me.resource_key = self.resource_key
 
 
     @staticmethod
@@ -76,23 +80,66 @@ class ResourceBase(Resource):
             payload['attachment'] = request.files
         return payload
 
+    @property
+    def cookies(self):
+        username = request.cookies.get('baseUserName', None)
+        token = request.cookies.get('baseUserToken', 'null')
+        return {'baseUserName': username, 'baseUserToken': token}
 
     @property
     def headers(self):
         return request.headers
 
+    @property
+    def logged_user(self):
+        return getattr(g, 'user', None)
 
     def return_not_allowed(self):
         return self.response({'result': 'Method not allowed'}), 405
 
-
     def return_unexpected_error(self, ex):
         return self.response({'result': 'error', 'exception': str(ex)}), 500
-
 
     def response(self, data_dict):
         return self.transform_key(data_dict, self.snake_to_camel)
 
+    def get_list(self, **kwargs):
+        try:
+            entity_list = self.me.get_list(self.payload, **kwargs)
+            return [self.response(entity.as_dict(compact=self.list_compact)) for entity in entity_list]
+        except Exception as ex:
+            return self.return_unexpected_error(ex)
+
+    def get_item(self, **kwargs):
+        try:
+            return self.response(self.me.get_item(**kwargs).as_dict())
+        except self.me.EntityNotExist:
+            return "Item doesn't exist", 404
+        except Exception as ex:
+            return self.return_unexpected_error(ex)
+
+    @login_required
+    def get(self, **kwargs):
+        if 'GET' not in self.http_methods_allowed:
+            return self.return_not_allowed()
+        if kwargs.get('{}_id'.format(self.entity_key)) is None:
+            return self.get_list(**kwargs)
+        else:
+            return self.get_item(**kwargs)
+
+    @login_required
+    def post(self, **kwargs):
+        if 'POST' not in self.http_methods_allowed:
+            return self.return_not_allowed()
+        try:
+            created = self.me.create_new_entity(self.payload, **kwargs)
+            return self.response(created.as_dict()), 201
+        except self.me.InvalidEntityData as ex:
+            return self.response({'erro': 'Invalid data.', 'internal_code': ex.message}), 400
+        except self.me.EntityAlreadyExist as ex:
+            return {'erro': 'already-exist', 'exception': ex.message}, 400
+        except Exception as ex:
+            return self.return_unexpected_error(ex)
 
     def __extract_file_attached(self):
         try:
@@ -110,6 +157,43 @@ class ResourceBase(Resource):
         except Exception as ex:
             pass
         return None
+
+    @login_required
+    def put(self, **kwargs):
+        if 'PUT' not in self.http_methods_allowed:
+            return self.return_not_allowed()
+        try:
+            payload = self.payload
+            file_attached = self.__extract_file_attached()
+            if file_attached is not None:
+                payload = {
+                    'uploading': True,
+                    'file_attached': file_attached
+                }
+            updated = self.me.update(payload, **kwargs)
+            if updated:
+                return self.response(updated.as_dict()), 200
+            return self.response({'result': 'ERROR'}), 500
+        except self.me.InvalidEntityData as ex:
+            return self.response({'erro': 'Invalid data.', 'internal_code': ex.message}), 400
+        except self.me.EntityAlreadyExist as ex:
+            return {'erro': 'already-exist', 'exception': ex.message}, 400
+        except Exception as ex:
+            return self.return_unexpected_error(ex)
+
+    @login_required
+    def delete(self, **kwargs):
+        if 'DELETE' not in self.http_methods_allowed:
+            return self.return_not_allowed()
+        try:
+            self.me.delete(**kwargs)
+            return {'resultado': 'OK'}, 204
+        except self.me.CouldNotDelete as ex:
+            return self.response({'erro': 'Could not Delete', 'internal_code': ex.message}), 400
+        except self.me.WhoDaHellYouThinkYouAre as ex:
+            return self.response({'erro': 'Could not Delete', 'internal_code': 'its_not_yours'}), 400
+        except Exception as ex:
+            return self.return_unexpected_error(ex)
 
 
 # class AccountResource(ResourceBase):
@@ -226,18 +310,19 @@ class UserResource(ResourceBase):
     http_methods_allowed = ['GET', 'POST', 'PUT']
     entity = domain.User
 
-    # def get(self, user_id=None):
-    #     try:
-    #         if user_id:
-    #             user_data = domain.User.get_user(user_id)
-    #             return self.response({'result': 'success', 'data': user_data})
-    #         else:
-    #             users = domain.User.get_users()
-    #             return self.response({'result': 'success', 'data': users})
-    #
-    #         return self.response({'result': 'GET OK', 'data': 'nothing to return'})
-    #     except Exception as ex:
-    #         return self.return_unexpected_error(ex)
+    def get(self, user_id=None):
+        try:
+            users = self.entity.list_all()
+            users_dict = {}
+            for user in users:
+                users_dict[str(user.id)] = {
+                    'name': user.name,
+                    'email': user.email
+                }
+
+            return self.response({'result': 'success', 'data': users_dict})
+        except Exception as ex:
+            return self.return_unexpected_error(ex)
 
     def post(self):
         try:
@@ -246,15 +331,40 @@ class UserResource(ResourceBase):
         except Exception as ex:
             return self.return_unexpected_error(ex)
 
-    # def put(self, user_id=None):
-    #     try:
-    #         if user_id:
-    #             user_updated = User.update_user(user_id)
-    #             return self.response({'result': 'success', 'data': user_updated})
-    #
-    #         return self.response({'result': 'PUT OK', 'data': 'nothing to return'})
-    #     except Exception as ex:
-    #         return self.return_unexpected_error(ex)
+
+class LoginResource(ResourceBase):
+    http_methods_allowed = ['POST']
+    entity = domain.User
+
+    def post(self):
+        try:
+            user = self.entity.create_for_login(self.payload)
+            if user.is_correct:
+                g.user = user.as_dict()
+                g.current_token = user.generate_auth_token()
+                return {'logged': True}, 200
+        except Exception:
+            return {'result': 'Not Authorized'}, 401
+        return {'result': 'Not Authorized'}, 401
+
+
+class MeResource(ResourceBase):
+    http_methods_allowed = ['GET', 'PUT']
+
+    @login_required
+    def get(self):
+        try:
+            return self.response(self.me.as_dict())
+        except Exception as ex:
+            return self.return_unexpected_error(ex)
+
+    @login_required
+    def put(self):
+        try:
+            self.me.update_me(self.payload)
+            return self.response({'result': 'OK'})
+        except Exception as ex:
+            return self.return_unexpected_error(ex)
 
 
 class HealthcheckResource(Resource):

@@ -12,6 +12,11 @@ def create_api(app):
     from app import resources
     api = Api(app)
 
+    # users
+    api.add_resource(resources.UserResource, '/api/users')
+    api.add_resource(resources.LoginResource, '/api/login')
+    api.add_resource(resources.MeResource, '/api/me')
+
     # manage accounts
     # api.add_resource(resources.AccountResource,
     #     '/api/users/<int:user_id>/accounts',
@@ -32,12 +37,6 @@ def create_api(app):
     #     '/api/users/<int:user_id>/transactions',
     #     '/api/transactions/<int:transaction_id>'
     #     )
-
-    # users
-    api.add_resource(resources.UserResource,
-        '/api/users',
-        '/api/users/<int:user_id>'
-        )
 
     api.add_resource(resources.HealthcheckResource,
                      '/api/healthcheck',
