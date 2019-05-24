@@ -51,8 +51,8 @@ def add_token_header(response):
         token = g.current_token
         expire_date = datetime.now()
         expire_date = expire_date + timedelta(days=90)
-        response.set_cookie('baseUserToken', token, domain='inceres.com.br', expires=expire_date)
-        response.set_cookie('baseUserName', g.user['email'], domain='inceres.com.br', expires=expire_date)
+        response.set_cookie('baseUserToken', token, domain='finlife.com', expires=expire_date)
+        response.set_cookie('baseUserName', g.user['email'], domain='finlife.com', expires=expire_date)
 
     return response
 
