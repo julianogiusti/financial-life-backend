@@ -196,45 +196,53 @@ class ResourceBase(Resource):
             return self.return_unexpected_error(ex)
 
 
-# class AccountResource(ResourceBase):
-#     http_methods_allowed = ['GET', 'POST', 'PUT']
-#
-#     def get(self, account_id=None, user_id=None):
-#         try:
-#             if account_id:
-#                 account_data = Account.get_account(account_id)
-#                 return self.response({'result': 'success', 'data': account_data})
-#
-#             if user_id:
-#                 user_accounts = Account.get_user_accounts(user_id)
-#                 return self.response({'result': 'success', 'data': user_accounts})
-#
-#             return self.response({'result': 'GET OK', 'data': 'nothing to return'})
-#         except Exception as ex:
-#             return self.return_unexpected_error(ex)
-#
-#     def post(self, user_id):
-#         try:
-#             if user_id:
-#                 # TODO: passar nome da conta e tipo da conta no payload
-#                 account_created = Account.create_account(user_id)
-#                 return self.response({'result': 'success', 'data': user_accounts})
-#
-#             return self.response({'result': 'POST OK', 'data': 'nothing to return'})
-#         except Exception as ex:
-#             return self.return_unexpected_error(ex)
-#
-#     def put(self, account_id):
-#         try:
-#             if account_id:
-#                 account_data = Account.update_account(account_id)
-#                 return self.response({'result': 'success', 'data': account_data})
-#
-#             return self.response({'result': 'PUT OK', 'data': 'nothing to return'})
-#         except Exception as ex:
-#             return self.return_unexpected_error(ex)
-#
-#
+class AccountResource(ResourceBase):
+    http_methods_allowed = ['GET', 'POST', 'PUT']
+    entity = domain.Account
+
+    def get(self, account_id=None, user_id=None):
+        try:
+            # self.entity.create_new(self.payload)
+            domain.Account.get_user_accounts(21)
+            # return self.response({'result': 'success', 'data': account_data})
+
+            # if account_id:
+            #     account_data = domain.Account.get_account(account_id)
+            #     return self.response({'result': 'success', 'data': account_data})
+            #
+            # if user_id:
+            #     user_accounts = domain.Account.get_user_accounts(user_id)
+            #     return self.response({'result': 'success', 'data': user_accounts})
+            user_accounts = {
+                'name': "CC Itau",
+                'balance': 221.58
+            }
+            return self.response(user_accounts)
+            # return self.response({'result': 'GET OK', 'data': 'nothing to return'})
+        except Exception as ex:
+            return self.return_unexpected_error(ex)
+
+    # def post(self, user_id):
+    #     try:
+    #         if user_id:
+    #             # TODO: passar nome da conta e tipo da conta no payload
+    #             account_created = domain.Account.create_account(user_id)
+    #             return self.response({'result': 'success', 'data': account_created})
+    #
+    #         return self.response({'result': 'POST OK', 'data': 'nothing to return'})
+    #     except Exception as ex:
+    #         return self.return_unexpected_error(ex)
+
+    # def put(self, account_id):
+    #     try:
+    #         if account_id:
+    #             account_data = domain.Account.update_account(account_id)
+    #             return self.response({'result': 'success', 'data': account_data})
+    #
+    #         return self.response({'result': 'PUT OK', 'data': 'nothing to return'})
+    #     except Exception as ex:
+    #         return self.return_unexpected_error(ex)
+
 # class TransferResource(ResourceBase):
 #     http_methods_allowed = ['GET', 'POST']
 #
@@ -310,7 +318,7 @@ class UserResource(ResourceBase):
     http_methods_allowed = ['GET', 'POST', 'PUT']
     entity = domain.User
 
-    def get(self, user_id=None):
+    def get(self):
         try:
             users = self.entity.list_all()
             users_dict = {}

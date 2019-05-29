@@ -157,3 +157,58 @@ class User(Entity):
 
     def get_list(self, payload, **kwargs):
         return []
+
+class Account(Entity):
+    repository = models.Account
+
+    # @classmethod
+    # def create_new(cls, json_data):
+    #     password = json_data.pop('password')
+    #     password_hash = custom_app_context.encrypt(password)
+    #     json_data['password_hash'] = password_hash
+    #     instance = super(User, cls).create_new(json_data)
+    #     # error: "exception": "can't set attribute"
+    #     # instance.password_hash = password_hash
+    #
+    # def __init__(self, instance):
+    #     super(User, self).__init__(instance)
+    #     self.temp_password = None
+    #     self.entity_key = None
+    #     self.resource_key = None
+
+    # @bp.route('/users/<int:user_id>/accounts', methods=['POST'])
+    @classmethod
+    def create_account(cls, data):
+        # data = request.get_json() or {}
+        # if 'name' not in data or data['name'] == "":
+        #     return bad_request('Deve informar um nome para a conta')
+        # if Account.query.filter_by(user_id=user_id, name=data['name'], account_type=data['account_type']).first():
+        #     return bad_request('Você já tem uma conta com esse nome no mesmo tipo de conta')
+        # acc = Account()
+        # acc.from_dict(data, user_id=user_id)
+        # db.session.add(acc)
+        # db.session.commit()
+        # response = jsonify(acc.to_dict())
+        # response.status_code = 201
+        # response.headers['Location'] = url_for('api.get_user_accounts', user_id=acc.user_id)
+        return True
+
+    # @bp.route('/accounts/<int:account_id>', methods=['GET'])
+    # @classmethod
+    # def get_account(cls, account_id):
+    #     return jsonify(Account.query.get_or_404(account_id).to_dict())
+
+    # @bp.route('/users/<int:user_id>/accounts', methods=['GET'])
+    @classmethod
+    def get_user_accounts(cls, user_id):
+        print("Oi, pegar contas do usuário {}".format(user_id))
+        # data = Account.to_collection_dict(Account.query.filter_by(user_id=user_id), 'api.get_user_accounts', user_id=user_id)
+        return True
+    #
+    # @bp.route('/accounts/<int:account_id>', methods=['PUT'])
+    # def update_account(account_id):
+    #     account = Account.query.get_or_404(account_id)
+    #     data = request.get_json() or {}
+    #     account.from_dict(data)
+    #     db.session.commit()
+    #     return jsonify(account.to_dict())

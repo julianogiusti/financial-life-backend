@@ -18,12 +18,13 @@ def create_api(app):
     api.add_resource(resources.MeResource, '/api/me')
 
     # manage accounts
-    # api.add_resource(resources.AccountResource,
-    #     '/api/users/<int:user_id>/accounts',
-    #     '/api/accounts/<int:account_id>'
-    #     )
-    #
-    # # manage transfers
+    api.add_resource(resources.AccountResource,
+        '/api/accounts',
+        '/api/users/<int:user_id>/accounts',
+        '/api/accounts/<int:account_id>'
+        )
+
+    # manage transfers
     # api.add_resource(resources.TransferResource,
     #     '/api/users/<int:user_id>/transfers',
     #     '/api/transfers/<int:transfer_id>',
