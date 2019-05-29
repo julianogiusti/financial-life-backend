@@ -61,7 +61,7 @@ That's it! Now the api is running and you can send requests to it. Use curl or P
 ### Creating user
 
     curl -X POST \
-      http://local-finlife.com/api/users \
+      http://local.finlife.com/api/users \
       -H 'cache-control: no-cache' \
       -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
       -F name=User \
@@ -74,5 +74,5 @@ Soon...
 
 
 ## References
-[Flask mega tutorial](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world)
+[Flask mega tutorial](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world)  
 [InCeres base-api](https://github.com/InCeres/base-api)
