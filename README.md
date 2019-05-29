@@ -61,27 +61,16 @@ That's it! Now the api is running and you can send requests to it. Use curl or P
 ### Creating user
 
     curl -X POST \
-      http://localhost:5000/api/users \
-      -H 'Content-Type: application/json' \
+      http://local-finlife.com/api/users \
       -H 'cache-control: no-cache' \
-      -d '{
-      "username": "user",
-      "email": "user@email.com",
-      "password": "userpassword"
-    }'
+      -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
+      -F name=User \
+      -F email=user@mail.com \
+      -F password=user
 
 
 ### Creating account:
-
-    curl -X POST \
-      http://localhost:5000/api/users/1/accounts \
-      -H 'Content-Type: application/json' \
-      -H 'cache-control: no-cache' \
-      -d '{
-      "name": "Bank XYZ",
-      "account_type": 2,
-      "balance": 2000.75
-    }'
+Soon...
 
 
 ## References
