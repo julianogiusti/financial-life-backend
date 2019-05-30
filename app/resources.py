@@ -214,8 +214,14 @@ class AccountResource(ResourceBase):
             #     user_accounts = domain.Account.get_user_accounts(user_id)
             #     return self.response({'result': 'success', 'data': user_accounts})
             user_accounts = {
-                'name': "CC Itau",
-                'balance': 221.58
+                '1': {
+                    'account_name': "CC Itau",
+                    'account_balance': 221.58
+                },
+                '2': {
+                    'account_name': "CP Itau",
+                    'account_balance': 1221.58
+                }
             }
             return self.response(user_accounts)
             # return self.response({'result': 'GET OK', 'data': 'nothing to return'})
